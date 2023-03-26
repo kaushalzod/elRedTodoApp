@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:elredtodo/app/data/services/authservice.dart';
+import 'package:elredtodo/app/modules/login/loginpage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -10,14 +12,14 @@ class HomeAppBarSliver extends SliverPersistentHeaderDelegate {
   final int? personalCount;
   final int? businessCount;
   String imageUrl = "https://i.ibb.co/dPzV515/elred.png";
-  final Function()? menuOnTap;
+  final void Function()? menuOnTap;
 
   HomeAppBarSliver(
       {required this.expandedHeight,
       required this.appBarHeight,
+      this.menuOnTap,
       this.safeAreaHeight,
       this.donePercentage,
-      this.menuOnTap,
       this.businessCount,
       this.personalCount});
 
@@ -39,7 +41,14 @@ class HomeAppBarSliver extends SliverPersistentHeaderDelegate {
             height: appBarHeight,
             child: Row(children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () async {
+                  AuthService authService = AuthService();
+                  if (await authService.currentUser != null) {
+                    loginLogOutDialog(context, logOut: true);
+                  } else {
+                    loginLogOutDialog(context, logOut: false);
+                  }
+                },
                 icon: const Icon(Icons.menu, color: Colors.white),
               ),
               const SizedBox(width: 20),

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1089472273367-b8s6hlu3vq3davt52cuf7nn2dhsvmhr1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.elredtodo",
+            "certificate_hash": "568e75d32f4a6fadbc3c599bbcf4291c82f02d61"
+          }
+        },
+        {
           "client_id": "1089472273367-a6ms46br8j8gv2alfs6ki9tdi43ef91m.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "1089472273367-a6ms46br8j8gv2alfs6ki9tdi43ef91m.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1089472273367-4n5oqbtd35j1r1p75vkgj9l94k3v8kbf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.elredtodo"
+              }
             }
           ]
         }

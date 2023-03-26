@@ -1,12 +1,14 @@
 import 'package:elredtodo/app/core/themes/theme.dart';
 import 'package:elredtodo/app/core/utils/router.dart';
 import 'package:elredtodo/app/data/models/todo_model.dart';
+import 'package:elredtodo/app/data/services/authservice.dart';
 import 'package:elredtodo/app/modules/home/helper_widget/todo_listtile.dart';
 import 'package:elredtodo/app/modules/todo/helper_widget/todo_textfield.dart';
 import 'package:elredtodo/app/modules/todo/todoprovider.dart';
 import 'package:elredtodo/app/widgets/masked_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class TodoPage extends StatelessWidget {
@@ -16,7 +18,9 @@ class TodoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => TodoProvider(todo: todo),
+      create: (context) => TodoProvider(
+          todo: todo,
+          authService: Provider.of<AuthService>(context, listen: false)),
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
@@ -32,24 +36,28 @@ class TodoPage extends StatelessWidget {
             backgroundColor: primaryColor,
             elevation: 0,
             actions: [
-              Consumer<TodoProvider>(builder: (context, value, child) {
-                return PopupMenuButton(
-                  icon: RotatedBox(
-                    quarterTurns: 1,
-                    child: Icon(Iconsax.setting_5, color: secondaryColor),
-                  ),
-                  elevation: 3.2,
-                  tooltip: 'This is tooltip',
-                  itemBuilder: (BuildContext context) {
-                    return [
-                      const PopupMenuItem(
-                        value: "Delete",
-                        child: Text("Delete"),
-                      ),
-                    ];
-                  },
-                );
-              })
+              if (todo != null)
+                Consumer<TodoProvider>(builder: (context, value, child) {
+                  return PopupMenuButton(
+                    icon: RotatedBox(
+                      quarterTurns: 1,
+                      child: Icon(Iconsax.setting_5, color: secondaryColor),
+                    ),
+                    elevation: 3.2,
+                    tooltip: 'This is tooltip',
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        PopupMenuItem(
+                          onTap: () {
+                            value.deleteTodo(todo?.id ?? '');
+                          },
+                          value: "Delete",
+                          child: const Text("Delete"),
+                        ),
+                      ];
+                    },
+                  );
+                })
             ],
             title: Text(
               "${todo != null ? 'Edit' : 'Add'} new things",
@@ -89,7 +97,7 @@ class TodoPage extends StatelessWidget {
                       .toList(),
                   hint: DropdownMenuItem(
                     value: null,
-                    child: Text("Select Todo Type",
+                    child: Text("Select Todo Type*",
                         style: TextStyle(color: greyColor)),
                   ),
                   items: value.dropDownItems
@@ -103,15 +111,38 @@ class TodoPage extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 5),
-                todoTextField(hint: "Todo Title", controller: value.title),
+                todoTextField(hint: "Todo Title*", controller: value.title),
                 const SizedBox(height: 15),
                 todoTextField(
                     hint: "Description", controller: value.description),
                 const SizedBox(height: 15),
-                todoTextField(hint: "Date", controller: value.date),
+                todoTextField(
+                  hint: "Date*",
+                  controller: value.date,
+                  readOnly: true,
+                  onTap: () async {
+                    DateTime? dateTime = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(
+                        const Duration(days: 365),
+                      ),
+                    );
+                    if (dateTime != null) {
+                      value.setDateTime = DateFormat.yMMMMd().format(dateTime);
+                    }
+                  },
+                ),
                 const SizedBox(height: 30),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (todo != null) {
+                      value.editTodo();
+                    } else {
+                      value.addTodo();
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     elevation: 20,
                     shadowColor: Colors.black.withOpacity(0.5),

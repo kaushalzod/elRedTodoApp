@@ -1,9 +1,11 @@
 import 'package:elredtodo/app/core/themes/theme.dart';
 import 'package:elredtodo/app/core/utils/router.dart';
 import 'package:elredtodo/app/data/models/todo_model.dart';
+import 'package:elredtodo/app/data/services/authservice.dart';
 import 'package:elredtodo/app/modules/home/helper_widget/home_appbar.dart';
 import 'package:elredtodo/app/modules/home/helper_widget/todo_listtile.dart';
 import 'package:elredtodo/app/modules/home/homeprovider.dart';
+import 'package:elredtodo/app/modules/login/loginpage.dart';
 import 'package:elredtodo/app/modules/todo/todo_cudpage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,10 +15,20 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AuthService auth = Provider.of<AuthService>(context, listen: false);
+    HomeProvider homeProvider =
+        Provider.of<HomeProvider>(context, listen: false);
+    homeProvider.fetchTodoData();
     return Scaffold(
       backgroundColor: lightColor,
       floatingActionButton: GestureDetector(
-        onTap: () => context.push(const TodoPage()),
+        onTap: () async {
+          if (await auth.currentUser != null) {
+            context.push(const TodoPage());
+          } else {
+            loginLogOutDialog(context);
+          }
+        },
         child: Material(
           elevation: 10.0,
           color: secondaryColor,
@@ -30,7 +42,7 @@ class HomePage extends StatelessWidget {
       ),
       body: Consumer<HomeProvider>(
         builder: (context, value, child) {
-          if (value.todoList != null || (value.todoList?.isNotEmpty ?? false)) {
+          if (value.todoList != null && (value.todoList?.isNotEmpty ?? false)) {
             return CustomScrollView(
               slivers: [
                 SliverPersistentHeader(
@@ -38,6 +50,9 @@ class HomePage extends StatelessWidget {
                     expandedHeight: 230,
                     appBarHeight: kToolbarHeight,
                     safeAreaHeight: MediaQuery.of(context).padding.top,
+                    businessCount: value.getBusinessCount,
+                    personalCount: value.getPersonalCount,
+                    donePercentage: value.getDonePercentage,
                   ),
                   pinned: true,
                 ),
@@ -48,6 +63,8 @@ class HomePage extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => todoListTile(
                         value.getInboxTodo?[index] ?? Todo(),
+                        onIconTap: () => value.markDone(
+                            value.getInboxTodo?[index].id ?? '', true),
                         onTileTap: () => context
                             .push(TodoPage(todo: value.getInboxTodo?[index])),
                       ),
@@ -62,6 +79,8 @@ class HomePage extends StatelessWidget {
                     (context, index) => todoListTile(
                       value.getCompleteTodo?[index] ?? Todo(),
                       completed: true,
+                      onIconTap: () => value.markDone(
+                          value.getCompleteTodo?[index].id ?? '', false),
                       onTileTap: () => context
                           .push(TodoPage(todo: value.getCompleteTodo?[index])),
                     ),
@@ -86,8 +105,10 @@ class HomePage extends StatelessWidget {
                     height: MediaQuery.of(context).size.height -
                         230 -
                         MediaQuery.of(context).padding.top,
-                    child: const Center(
-                      child: Text("Nothing to show \n Add your things"),
+                    child: Center(
+                      child: value.isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text("Nothing to show \n Add your things"),
                     ),
                   ),
                 )

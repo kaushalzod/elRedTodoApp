@@ -59,15 +59,12 @@ Widget todoListTile(Todo todoModel,
           Padding(
             padding: const EdgeInsets.only(left: 20),
             child: Text(
-              todoModel.date != null
-                  ? DateFormat.MMMMd().format(
-                      DateTime.parse(todoModel.date!),
-                    )
-                  : "NA",
+              todoModel.date?.replaceAll(',', '\n') ?? "NA",
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 color: completed ? Colors.grey : null,
               ),
+              textAlign: TextAlign.center,
             ),
           )
         ],
